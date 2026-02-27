@@ -1,267 +1,568 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>pANEL — Login</title>
+<title>pANEL â€” Login</title>
 <link rel="stylesheet" href="css/style.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
-/* ── Role selector cards ── */
-.role-select-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 11px;
-  margin: 24px 0 6px;
+/* ══════════════════════════════════════════════
+   pANEL LOGIN PAGE — LIGHT THEME
+══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: 'Monaco', 'Courier New', monospace;
+  background: #f0f4f8;
+  color: #0f172a;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
-.role-card {
+
+/* ── Space image background ── */
+.space-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: url('bg.png') center center / cover no-repeat;
+}
+.space-overlay {
+  position: fixed; inset: 0; z-index: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(240, 244, 255, 0.75) 0%,
+    rgba(224, 231, 255, 0.70) 40%,
+    rgba(235, 240, 255, 0.75) 100%
+  );
+}
+
+/* â”€â”€ Canvas background â”€â”€ */
+#bgCanvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+
+/* â”€â”€ Background noise overlay â”€â”€ */
+.bg-noise {
+  position: fixed; inset: 0; z-index: 3;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* â”€â”€ Radial glow spots â”€â”€ */
+.glow-spot {
+  position: fixed; border-radius: 50%; pointer-events: none; z-index: 3;
+  filter: blur(120px);
+}
+.glow-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(109,40,217,0.09) 0%, transparent 70%); top: -200px; left: -150px; animation: driftA 12s ease-in-out infinite alternate; }
+.glow-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%); bottom: -100px; right: -100px; animation: driftB 15s ease-in-out infinite alternate; }
+.glow-3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(6,182,212,0.05) 0%, transparent 70%); top: 50%; left: 55%; animation: driftC 10s ease-in-out infinite alternate; }
+
+@keyframes driftA { 0% { transform: translate(0,0); } 100% { transform: translate(60px,40px); } }
+@keyframes driftB { 0% { transform: translate(0,0); } 100% { transform: translate(-50px,-30px); } }
+@keyframes driftC { 0% { transform: translate(-50%,-50%) scale(1); } 100% { transform: translate(-50%,-50%) scale(1.3); } }
+
+/* â”€â”€ Grid lines bg â”€â”€ */
+.grid-bg {
+  position: fixed; inset: 0; z-index: 3; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(15,23,42,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, transparent 70%);
+}
+
+/* â”€â”€ Layout â”€â”€ */
+.login-layout {
+  position: relative; z-index: 10;
+  display: flex; flex-direction: column;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 0;
+}
+
+/* â”€â”€ Card â”€â”€ */
+.login-card {
+  width: 100%; max-width: 430px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  border: 1.5px solid rgba(203,213,225,0.9);
+  border-radius: 24px;
+  padding: 40px 36px 36px;
+  box-shadow:
+    0 0 0 1px rgba(109,40,217,0.06),
+    0 20px 60px rgba(15,23,42,0.12),
+    0 4px 16px rgba(109,40,217,0.05);
+  animation: cardIn 0.6s cubic-bezier(.22,1,.36,1) both;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Card top glow line */
+.login-card::before {
+  content: '';
+  position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.6), rgba(96,165,250,0.4), transparent);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* â”€â”€ Header â”€â”€ */
+.login-head {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 28px; gap: 6px;
+}
+
+.logo-ring {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 24px rgba(124,58,237,0.30), 0 4px 12px rgba(15,23,42,0.12);
+  margin-bottom: 14px;
+  position: relative;
+}
+.logo-ring::after {
+  content: '';
+  position: absolute; inset: -3px; border-radius: 17px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(59,130,246,0.2));
+  z-index: -1;
+}
+
+.login-title {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  color: #0f172a;
+}
+.login-title span {
+  background: linear-gradient(90deg, #7c3aed, #2563eb);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-style: italic;
+}
+
+.login-sub {
+  font-size: 12.5px; color: #64748b;
+  font-weight: 400; letter-spacing: 0.2px;
+}
+
+/* â”€â”€ Step dots â”€â”€ */
+.sdots {
+  display: flex; justify-content: center; gap: 6px; margin-bottom: 22px;
+}
+.sdot {
+  height: 4px; border-radius: 99px;
+  background: #cbd5e1; width: 24px;
+  transition: all 0.35s cubic-bezier(.4,0,.2,1);
+}
+.sdot.on { background: linear-gradient(90deg, #7c3aed, #2563eb); width: 40px; }
+
+/* â"€â"€ Step label â"€â"€ */
+.step-label {
+  text-align: center; font-size: 12px; font-weight: 500;
+  color: #94a3b8; margin-bottom: 18px;
+  letter-spacing: 0.4px; display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.step-label i { color: #8b5cf6; font-size: 11px; }
+
+/* â”€â”€ Role grid â”€â”€ */
+.role-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 9px;
+  margin-bottom: 4px;
+}
+
+.r-card {
   position: relative;
   display: flex; flex-direction: column; align-items: center;
-  gap: 8px; padding: 20px 10px 16px;
+  gap: 7px; padding: 18px 10px 14px;
   border-radius: 14px;
-  border: 2px solid var(--border2);
-  background: var(--bg-input);
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
   cursor: pointer;
-  transition: all 0.22s cubic-bezier(.4,0,.2,1);
+  transition: all 0.2s cubic-bezier(.4,0,.2,1);
   user-select: none;
+  overflow: hidden;
 }
-.role-card:hover { transform: translateY(-3px); }
-.role-card .rc-icon {
-  width: 46px; height: 46px; border-radius: 13px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-  transition: all 0.22s ease;
-}
-.role-card .rc-name   { font-size: 13px; font-weight: 700; }
-.role-card .rc-desc   { font-size: 10.5px; color: var(--text-3); text-align: center; line-height: 1.4; }
-.role-card .rc-arrow  {
-  position: absolute; top: 10px; right: 10px;
-  font-size: 10px; color: var(--text-3);
+.r-card::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 14px;
   opacity: 0; transition: opacity 0.2s;
 }
-.role-card:hover .rc-arrow { opacity: 1; }
-
-/* Role-specific colors */
-.role-card.owner  .rc-icon { background: #fef9c3;  color: #92400e; }
-.role-card.admin  .rc-icon { background: #ede9fe; color: #6d28d9; }
-.role-card.master .rc-icon { background: #dbeafe; color: #1d4ed8; }
-.role-card.seller .rc-icon { background: #dcfce7;  color: #15803d; }
-.role-card.developer .rc-icon { background: #fee2e2; color: #b91c1c; }
-
-.role-card.owner:hover,  .role-card.owner.selected  { border-color: #d97706; box-shadow: 0 0 18px rgba(217,119,6,0.15); }
-.role-card.admin:hover,  .role-card.admin.selected  { border-color: #7c3aed; box-shadow: 0 0 18px rgba(124,58,237,0.18); }
-.role-card.master:hover, .role-card.master.selected { border-color: #2563eb; box-shadow: 0 0 18px rgba(37,99,235,0.16); }
-.role-card.seller:hover, .role-card.seller.selected { border-color: #16a34a; box-shadow: 0 0 18px rgba(22,163,74,0.15); }
-.role-card.developer:hover, .role-card.developer.selected { border-color: #dc2626; box-shadow: 0 0 18px rgba(220,38,38,0.15); }
-
-/* Selected check */
-.role-card.selected::after {
-  content: '✓';
-  position: absolute; top: 8px; right: 10px;
-  font-size: 12px; font-weight: 800;
-  color: white;
+.r-card:hover {
+  border-color: #c4b5fd;
+  background: #faf5ff;
+  transform: translateY(-2px);
 }
-.role-card.owner.selected::after  { color: #92400e; }
-.role-card.admin.selected::after  { color: #6d28d9; }
-.role-card.master.selected::after { color: #1d4ed8; }
-.role-card.seller.selected::after { color: #15803d; }
-.role-card.developer.selected::after { color: #b91c1c; }
+.r-card:hover::before { opacity: 1; }
 
-/* Developer card spans full row */
-.role-card.developer { grid-column: span 2; flex-direction: row; gap: 14px; padding: 16px 20px; }
-.role-card.developer .rc-desc { text-align: left; }
+.r-card .r-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: transform 0.2s;
+}
+.r-card:hover .r-icon { transform: scale(1.08); }
 
-/* Step transition */
-.auth-step { transition: opacity 0.3s ease, transform 0.3s ease; }
-.auth-step.hidden { display: none; }
+.r-card .r-name { font-size: 12.5px; font-weight: 700; color: #1e293b; }
+.r-card .r-desc { font-size: 10.5px; color: #94a3b8; text-align: center; line-height: 1.4; }
 
-/* Selected role header in step 2 */
-.selected-role-header {
+/* Role colors */
+.r-card.owner  .r-icon { background: #fef9c3; color: #d97706; }
+.r-card.admin  .r-icon { background: #ede9fe; color: #7c3aed; }
+.r-card.master .r-icon { background: #dbeafe; color: #2563eb; }
+.r-card.seller .r-icon { background: #dcfce7; color: #16a34a; }
+.r-card.developer .r-icon { background: #fee2e2; color: #dc2626; }
+
+.r-card.owner:hover    { border-color: #fde68a; box-shadow: 0 4px 20px rgba(217,119,6,0.12); }
+.r-card.admin:hover    { border-color: #c4b5fd; box-shadow: 0 4px 20px rgba(124,58,237,0.12); }
+.r-card.master:hover   { border-color: #93c5fd; box-shadow: 0 4px 20px rgba(37,99,235,0.10); }
+.r-card.seller:hover   { border-color: #86efac; box-shadow: 0 4px 20px rgba(22,163,74,0.10); }
+.r-card.developer:hover { border-color: #fca5a5; box-shadow: 0 4px 20px rgba(220,38,38,0.10); }
+
+.r-card.selected::after {
+  content: 'âœ“'; position: absolute; top: 8px; right: 10px;
+  font-size: 11px; font-weight: 800;
+}
+.r-card.owner.selected   { border-color: #fde68a; background: #fffbeb; }
+.r-card.admin.selected   { border-color: #c4b5fd; background: #faf5ff; }
+.r-card.master.selected  { border-color: #93c5fd; background: #eff6ff; }
+.r-card.seller.selected  { border-color: #86efac; background: #f0fdf4; }
+.r-card.developer.selected { border-color: #fca5a5; background: #fff1f2; }
+.r-card.owner.selected::after   { color: #d97706; }
+.r-card.admin.selected::after   { color: #7c3aed; }
+.r-card.master.selected::after  { color: #2563eb; }
+.r-card.seller.selected::after  { color: #16a34a; }
+.r-card.developer.selected::after { color: #dc2626; }
+
+/* Dev card full row */
+.r-card.developer { grid-column: span 2; flex-direction: row; gap: 14px; padding: 14px 18px; }
+.r-card.developer .r-desc { text-align: left; }
+
+/* â”€â”€ Step transition â”€â”€ */
+.auth-step { transition: opacity 0.28s ease, transform 0.28s ease; }
+.auth-step.hidden { display: none !important; }
+
+/* â”€â”€ Role banner (step 2) â”€â”€ */
+.role-banner {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 16px; border-radius: 12px;
-  margin-bottom: 22px;
-  border: 1.5px solid var(--border2);
-  background: var(--bg-input);
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  margin-bottom: 20px;
 }
-.srh-icon {
-  width: 38px; height: 38px; border-radius: 10px;
+.rb-icon {
+  width: 36px; height: 36px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px; flex-shrink: 0;
+  font-size: 16px; flex-shrink: 0;
 }
-.srh-info { flex: 1; }
-.srh-role { font-size: 14px; font-weight: 700; }
-.srh-sub  { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-.srh-change {
-  font-size: 11.5px; color: var(--accent-purple); cursor: pointer;
-  font-weight: 600; white-space: nowrap;
-  padding: 5px 10px; border-radius: 6px;
-  border: 1px solid rgba(124,58,237,0.3);
-  transition: all 0.2s;
+.rb-info { flex: 1; }
+.rb-role { font-size: 13.5px; font-weight: 700; color: #1e293b; }
+.rb-sub  { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.rb-back {
+  font-size: 11.5px; color: #7c3aed; cursor: pointer; font-weight: 600;
+  padding: 5px 11px; border-radius: 7px;
+  border: 1px solid #ddd6fe;
+  transition: all 0.2s; white-space: nowrap;
+  background: #f5f3ff;
 }
-.srh-change:hover { background: rgba(124,58,237,0.12); }
+.rb-back:hover { background: #ede9fe; border-color: #c4b5fd; }
 
-/* Step dots */
-.step-dots {
-  display: flex; justify-content: center; gap: 7px; margin-bottom: 20px;
+/* â”€â”€ Form â”€â”€ */
+.lf-group { margin-bottom: 16px; }
+.lf-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 600;
+  color: #475569; margin-bottom: 8px;
+  letter-spacing: 0.5px; text-transform: uppercase;
 }
-.step-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--border2); transition: all 0.3s ease;
+.lf-label i { font-size: 11px; color: #7c3aed; }
+
+.lf-group input {
+  width: 100%;
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px; padding: 12px 16px;
+  color: #0f172a; font-size: 14px; font-family: inherit;
+  outline: none; transition: all 0.2s;
 }
-.step-dot.active { background: var(--accent-purple); width: 22px; border-radius: 4px; }
+.lf-group input::placeholder { color: #94a3b8; }
+.lf-group input:focus {
+  border-color: #a78bfa;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.10);
+}
+
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 46px; }
+.pw-toggle {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  color: #94a3b8; font-size: 15px; padding: 4px;
+  background: none; border: none; cursor: pointer;
+  transition: color 0.2s;
+}
+.pw-toggle:hover { color: #7c3aed; }
+
+/* â”€â”€ Auth status â”€â”€ */
+.auth-status {
+  display: none; padding: 10px 14px; border-radius: 9px;
+  font-size: 12.5px; font-weight: 500; margin: 10px 0 4px;
+  border: 1px solid;
+}
+.auth-status.error   { display: block; background: #fef2f2;   color: #b91c1c; border-color: #fecaca; }
+.auth-status.success { display: block; background: #f0fdf4;   color: #166534; border-color: #bbf7d0; }
+.auth-status.info    { display: block; background: #eff6ff;  color: #1d4ed8; border-color: #bfdbfe; }
+
+/* â”€â”€ Login button â”€â”€ */
+.btn-login {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  color: white; border: none; border-radius: 11px;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.3px;
+  cursor: pointer; margin-top: 6px;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.30), 0 1px 0 rgba(255,255,255,0.15) inset;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+  font-family: inherit;
+}
+.btn-login::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(124,58,237,0.55); }
+.btn-login:hover::before { opacity: 1; }
+.btn-login:active { transform: translateY(0); }
+.btn-login:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+/* â”€â”€ Footer â”€â”€ */
+.login-foot {
+  text-align: center; font-size: 11.5px;
+  color: #94a3b8; margin-top: 20px; line-height: 1.6;
+}
+.login-foot i { margin-right: 5px; color: #a78bfa; }
+.login-foot strong { color: #64748b; }
+
+/* â"€â"€ Bottom branding â"€â"€ */
+.login-brand-foot {
+  margin-top: 20px; text-align: center;
+  font-size: 11px; color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+.login-brand-foot span { color: #7c3aed; font-weight: 700; }
 </style>
 </head>
-<body class="auth-body">
+<body>
 
-<!-- Background orbs -->
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-<div class="orb orb-3"></div>
+<!-- Particle canvas -->
+<canvas id="bgCanvas"></canvas>
 
-<div class="auth-wrapper">
-  <div class="auth-card" id="loginCard">
+<!-- Space image background -->
+<div class="space-bg"></div>
+<div class="space-overlay"></div>
 
-    <!-- Logo -->
-    <div class="auth-logo">
-      <div class="logo-icon">
-        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="26" height="26">
-          <!-- sidebar strip -->
-          <rect x="2" y="2" width="10" height="36" rx="3" fill="white"/>
-          <!-- topbar -->
-          <rect x="15" y="2" width="23" height="9" rx="3" fill="white" opacity="0.82"/>
-          <!-- main content -->
-          <rect x="15" y="14" width="10" height="24" rx="3" fill="white" opacity="0.65"/>
-          <!-- widget top-right -->
-          <rect x="28" y="14" width="10" height="11" rx="2.5" fill="white" opacity="0.65"/>
-          <!-- widget bottom-right -->
-          <rect x="28" y="28" width="10" height="10" rx="2.5" fill="white" opacity="0.65"/>
+<!-- Background layers -->
+<div class="bg-noise"></div>
+<div class="grid-bg"></div>
+<div class="glow-spot glow-1"></div>
+<div class="glow-spot glow-2"></div>
+<div class="glow-spot glow-3"></div>
+
+<div class="login-layout">
+  <div class="login-card">
+
+    <!-- Header -->
+    <div class="login-head">
+      <div class="logo-ring">
+        <!-- Fighter Plane (top-down view) -->
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="30" height="30">
+          <!-- Fuselage body -->
+          <path d="M20 2 C18 6 17 12 17 20 C17 27 18 33 20 38 C22 33 23 27 23 20 C23 12 22 6 20 2Z" fill="white"/>
+          <!-- Left main wing -->
+          <path d="M17 16 C12 14 5 18 2 22 C6 21 11 20 17 20Z" fill="white" opacity="0.9"/>
+          <!-- Right main wing -->
+          <path d="M23 16 C28 14 35 18 38 22 C34 21 29 20 23 20Z" fill="white" opacity="0.9"/>
+          <!-- Left tail fin -->
+          <path d="M17 28 C13 27 9 30 8 33 C11 31 14 30 17 30Z" fill="white" opacity="0.75"/>
+          <!-- Right tail fin -->
+          <path d="M23 28 C27 27 31 30 32 33 C29 31 26 30 23 30Z" fill="white" opacity="0.75"/>
+          <!-- Cockpit -->
+          <ellipse cx="20" cy="13" rx="2" ry="3.5" fill="rgba(147,197,253,0.85)"/>
+          <!-- Engine glow -->
+          <ellipse cx="20" cy="35" rx="1.5" ry="1" fill="rgba(251,191,36,0.9)"/>
+          <!-- Nose tip -->
+          <circle cx="20" cy="3" r="1" fill="rgba(255,255,255,0.6)"/>
         </svg>
       </div>
-      <span class="logo-text"><span class="lt-p">p</span>ANEL</span>
+      <div class="login-title"><span>T</span>ejass</div>
+      <div class="login-sub">Secure Multi-Role Access System</div>
     </div>
-    <p class="auth-subtitle">Secure Multi-Role Access System</p>
 
     <!-- Step dots -->
-    <div class="step-dots">
-      <div class="step-dot active" id="dot1"></div>
-      <div class="step-dot" id="dot2"></div>
+    <div class="sdots">
+      <div class="sdot on" id="dot1"></div>
+      <div class="sdot" id="dot2"></div>
     </div>
 
-    <!-- ══ STEP 1: Role Selection ══ -->
+    <!-- â•â• STEP 1: Role Selection â•â• -->
     <div class="auth-step" id="step1">
-      <p style="text-align:center;font-size:13px;color:var(--text-2);margin-bottom:4px">
-        <i class="fa-solid fa-hand-pointer" style="margin-right:6px;color:var(--accent-purple)"></i>
+
+      <div class="step-label">
+        <i class="fa-solid fa-hand-pointer"></i>
         Select your role to continue
-      </p>
+      </div>
 
-      <div class="role-select-grid">
+      <div class="role-grid">
 
-        <!-- Owner -->
-        <div class="role-card owner" onclick="selectRole('owner')">
-          <div class="rc-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-          <div class="rc-icon"><i class="fa-solid fa-crown"></i></div>
-          <div class="rc-name">Owner</div>
-          <div class="rc-desc">Full system control &amp; master access</div>
+        <div class="r-card owner" onclick="selectRole('owner')">
+          <div class="r-icon"><i class="fa-solid fa-crown"></i></div>
+          <div class="r-name">Owner</div>
+          <div class="r-desc">Full system control</div>
         </div>
 
-        <!-- Admin -->
-        <div class="role-card admin" onclick="selectRole('admin')">
-          <div class="rc-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-          <div class="rc-icon"><i class="fa-solid fa-user-shield"></i></div>
-          <div class="rc-name">Admin</div>
-          <div class="rc-desc">Manage masters, sellers &amp; keys</div>
+        <div class="r-card admin" onclick="selectRole('admin')">
+          <div class="r-icon"><i class="fa-solid fa-user-shield"></i></div>
+          <div class="r-name">Admin</div>
+          <div class="r-desc">Manage users &amp; keys</div>
         </div>
 
-        <!-- Master -->
-        <div class="role-card master" onclick="selectRole('master')">
-          <div class="rc-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-          <div class="rc-icon"><i class="fa-solid fa-star"></i></div>
-          <div class="rc-name">Master</div>
-          <div class="rc-desc">Manage sellers &amp; generate keys</div>
+        <div class="r-card master" onclick="selectRole('master')">
+          <div class="r-icon"><i class="fa-solid fa-star"></i></div>
+          <div class="r-name">Master</div>
+          <div class="r-desc">Manage sellers</div>
         </div>
 
-        <!-- Seller -->
-        <div class="role-card seller" onclick="selectRole('seller')">
-          <div class="rc-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-          <div class="rc-icon"><i class="fa-solid fa-tags"></i></div>
-          <div class="rc-name">Seller</div>
-          <div class="rc-desc">Generate &amp; sell license keys</div>
+        <div class="r-card seller" onclick="selectRole('seller')">
+          <div class="r-icon"><i class="fa-solid fa-tags"></i></div>
+          <div class="r-name">Seller</div>
+          <div class="r-desc">Generate &amp; sell keys</div>
         </div>
 
-        <!-- Developer (spans full row) -->
-        <div class="role-card developer" onclick="selectRole('developer')">
-          <div class="rc-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-          <div class="rc-icon"><i class="fa-solid fa-code"></i></div>
+        <div class="r-card developer" onclick="selectRole('developer')">
+          <div class="r-icon"><i class="fa-solid fa-code"></i></div>
           <div>
-            <div class="rc-name">Developer</div>
-            <div class="rc-desc">API access &amp; system integration tools</div>
+            <div class="r-name">Developer</div>
+            <div class="r-desc">API access &amp; integration tools</div>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- ══ STEP 2: Login Form ══ -->
+    <!-- â•â• STEP 2: Login Form â•â• -->
     <div class="auth-step hidden" id="step2">
 
-      <!-- Selected role banner -->
-      <div class="selected-role-header" id="roleHeader">
-        <div class="srh-icon" id="roleHeaderIcon"></div>
-        <div class="srh-info">
-          <div class="srh-role" id="roleHeaderName">Role</div>
-          <div class="srh-sub" id="roleHeaderSub">Enter credentials below</div>
+      <div class="role-banner" id="roleHeader">
+        <div class="rb-icon" id="roleHeaderIcon"></div>
+        <div class="rb-info">
+          <div class="rb-role" id="roleHeaderName">Role</div>
+          <div class="rb-sub" id="roleHeaderSub">Enter credentials below</div>
         </div>
-        <span class="srh-change" onclick="goBack()">
-          <i class="fa-solid fa-arrow-left" style="margin-right:4px"></i>Change
+        <span class="rb-back" onclick="goBack()">
+          <i class="fa-solid fa-arrow-left" style="margin-right:4px"></i>Back
         </span>
       </div>
 
-      <!-- Login Form -->
       <form id="loginForm" autocomplete="off">
-        <div class="form-group">
-          <label><i class="fa-solid fa-user"></i> Username</label>
+
+        <div class="lf-group">
+          <label class="lf-label"><i class="fa-solid fa-user"></i> Username</label>
           <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="off" spellcheck="false" required/>
         </div>
-        <div class="form-group">
-          <label><i class="fa-solid fa-lock"></i> Password</label>
+
+        <div class="lf-group">
+          <label class="lf-label"><i class="fa-solid fa-lock"></i> Password</label>
           <div class="pw-wrap">
-            <input type="password" id="loginPassword" placeholder="Any length — e.g. 123 or abc" required/>
+            <input type="password" id="loginPassword" placeholder="Enter your password" required/>
             <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)">
               <i class="fa-regular fa-eye"></i>
             </button>
           </div>
         </div>
 
-        <!-- Status -->
         <div class="auth-status" id="loginStatus"></div>
 
-        <button type="submit" class="btn-primary" id="loginBtn">
-          <span class="btn-text"><i class="fa-solid fa-right-to-bracket"></i> Sign In</span>
-          <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin"></i> Authenticating…</span>
+        <button type="submit" class="btn-login" id="loginBtn">
+          <span class="btn-text"><i class="fa-solid fa-right-to-bracket" style="margin-right:7px"></i>Sign In</span>
+          <span class="btn-loader" style="display:none"><i class="fa-solid fa-spinner fa-spin" style="margin-right:7px"></i>Authenticatingâ€¦</span>
         </button>
+
       </form>
 
-      <p class="auth-footer">
+      <div class="login-foot">
         <i class="fa-solid fa-circle-info"></i>
         Need access? Contact your <strong>Owner / Admin</strong>.
-        Username &amp; password are set by your admin.
-      </p>
+      </div>
+
     </div>
 
+  </div>
+
+  <div class="login-brand-foot">
+    Powered by <span>CodeXdev(iitian)</span> &nbsp;·&nbsp; Secure &nbsp;·&nbsp; Fast &nbsp;·&nbsp; Reliable
   </div>
 </div>
 
 <!-- Firebase & App scripts -->
 <script type="module" src="js/firebase-config.js"></script>
 <script type="module" src="js/auth.js"></script>
+
 <script>
-// Role metadata
+/* â”€â”€ Particle background â”€â”€ */
+(function(){
+  const canvas = document.getElementById('bgCanvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize(){
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const COLORS = ['rgba(124,58,237,', 'rgba(37,99,235,', 'rgba(16,185,129,', 'rgba(220,38,38,'];
+
+  for(let i = 0; i < 60; i++){
+    particles.push({
+      x: Math.random() * 2000,
+      y: Math.random() * 1200,
+      r: Math.random() * 1.5 + 0.3,
+      c: COLORS[Math.floor(Math.random()*COLORS.length)],
+      o: Math.random() * 0.25 + 0.05,
+      vx: (Math.random()-.5) * 0.15,
+      vy: (Math.random()-.5) * 0.15
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = p.c + p.o + ')';
+      ctx.fill();
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < -10) p.x = W+10;
+      if(p.x > W+10) p.x = -10;
+      if(p.y < -10) p.y = H+10;
+      if(p.y > H+10) p.y = -10;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* â”€â”€ Role metadata â”€â”€ */
 const ROLES = {
-  owner:     { label:'Owner',     icon:'fa-crown',       color:'#92400e', bg:'#fef9c3', sub:'Full system access',         cls:'owner' },
-  admin:     { label:'Admin',     icon:'fa-user-shield', color:'#6d28d9', bg:'#ede9fe', sub:'Team management access',      cls:'admin' },
-  master:    { label:'Master',    icon:'fa-star',        color:'#1d4ed8', bg:'#dbeafe', sub:'Seller management access',    cls:'master' },
-  seller:    { label:'Seller',    icon:'fa-tags',        color:'#15803d', bg:'#dcfce7', sub:'Key generation access',       cls:'seller' },
-  developer: { label:'Developer', icon:'fa-code',        color:'#b91c1c', bg:'#fee2e2', sub:'API & developer tools access', cls:'developer' },
+  owner:     { label:'Owner',     icon:'fa-crown',       color:'#d97706', bg:'#fef9c3',  sub:'Full system access',          cls:'owner' },
+  admin:     { label:'Admin',     icon:'fa-user-shield', color:'#7c3aed', bg:'#ede9fe',  sub:'Team management access',       cls:'admin' },
+  master:    { label:'Master',    icon:'fa-star',        color:'#2563eb', bg:'#dbeafe',  sub:'Seller management access',     cls:'master' },
+  seller:    { label:'Seller',    icon:'fa-tags',        color:'#16a34a', bg:'#dcfce7',  sub:'Key generation access',        cls:'seller' },
+  developer: { label:'Developer', icon:'fa-code',        color:'#dc2626', bg:'#fee2e2',  sub:'API & developer tools access', cls:'developer' },
 };
 
 let selectedRole = null;
@@ -270,59 +571,46 @@ function selectRole(role) {
   selectedRole = role;
   const r = ROLES[role];
 
-  // Update role header in step 2
-  document.getElementById('roleHeaderIcon').style.background = '';
-  document.getElementById('roleHeaderIcon').innerHTML =
-    `<i class="fa-solid ${r.icon}" style="color:${r.color}"></i>`;
-  document.getElementById('roleHeaderIcon').style.cssText =
-    `width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${r.bg};`;
+  const icon = document.getElementById('roleHeaderIcon');
+  icon.style.cssText = `width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:${r.bg};`;
+  icon.innerHTML = `<i class="fa-solid ${r.icon}" style="color:${r.color}"></i>`;
   document.getElementById('roleHeaderName').textContent = r.label + ' Login';
   document.getElementById('roleHeaderSub').textContent  = r.sub;
 
-  // Animate transition
   const s1 = document.getElementById('step1');
   const s2 = document.getElementById('step2');
-  s1.style.opacity = '0';
-  s1.style.transform = 'translateX(-20px)';
+  s1.style.opacity = '0'; s1.style.transform = 'translateX(-18px)';
   setTimeout(() => {
     s1.classList.add('hidden');
     s2.classList.remove('hidden');
-    s2.style.opacity = '0';
-    s2.style.transform = 'translateX(20px)';
+    s2.style.opacity = '0'; s2.style.transform = 'translateX(18px)';
     requestAnimationFrame(() => {
-      s2.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      s2.style.opacity = '1';
-      s2.style.transform = 'translateX(0)';
+      s2.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+      s2.style.opacity = '1'; s2.style.transform = 'translateX(0)';
     });
     document.getElementById('loginUsername').focus();
-  }, 250);
+  }, 240);
 
-  // Step dots
-  document.getElementById('dot1').classList.remove('active');
-  document.getElementById('dot2').classList.add('active');
-
-  // Store for auth.js
+  document.getElementById('dot1').classList.remove('on');
+  document.getElementById('dot2').classList.add('on');
   window.__selectedRole = role;
 }
 
 function goBack() {
   const s1 = document.getElementById('step1');
   const s2 = document.getElementById('step2');
-  s2.style.opacity = '0';
-  s2.style.transform = 'translateX(20px)';
+  s2.style.opacity = '0'; s2.style.transform = 'translateX(18px)';
   setTimeout(() => {
     s2.classList.add('hidden');
     s1.classList.remove('hidden');
-    s1.style.opacity = '0';
-    s1.style.transform = 'translateX(-20px)';
+    s1.style.opacity = '0'; s1.style.transform = 'translateX(-18px)';
     requestAnimationFrame(() => {
-      s1.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      s1.style.opacity = '1';
-      s1.style.transform = 'translateX(0)';
+      s1.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+      s1.style.opacity = '1'; s1.style.transform = 'translateX(0)';
     });
   }, 220);
-  document.getElementById('dot1').classList.add('active');
-  document.getElementById('dot2').classList.remove('active');
+  document.getElementById('dot1').classList.add('on');
+  document.getElementById('dot2').classList.remove('on');
   document.getElementById('loginStatus').className = 'auth-status';
   document.getElementById('loginStatus').textContent = '';
   selectedRole = null;
@@ -334,6 +622,14 @@ function togglePw(id, btn) {
   if (inp.type === 'password') { inp.type='text'; btn.innerHTML='<i class="fa-regular fa-eye-slash"></i>'; }
   else { inp.type='password'; btn.innerHTML='<i class="fa-regular fa-eye"></i>'; }
 }
+
+/* Map old class names auth.js might call */
+document.addEventListener('DOMContentLoaded', () => {
+  const loginBtn = document.getElementById('loginBtn');
+  if(loginBtn) {
+    loginBtn.classList.add('btn-primary');
+  }
+});
 </script>
 </body>
 </html>
