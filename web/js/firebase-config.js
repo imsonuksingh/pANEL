@@ -12,7 +12,7 @@ import { getDatabase }          from "https://www.gstatic.com/firebasejs/10.12.0
 // ─── FIREBASE CONFIG ────────────────────────────────────
 const firebaseConfig = {
   apiKey:            "AIzaSyDxlzStE59vAflvPJJVrdQctnYozfzV7Rk",
-  authDomain:        "panel-app-b5ca4.firebaseapp.com",
+  authDomain:        "tejassxnget.vercel.app",
   databaseURL:       "https://panel-app-b5ca4-default-rtdb.firebaseio.com",
   projectId:         "panel-app-b5ca4",
   storageBucket:     "panel-app-b5ca4.firebasestorage.app",
