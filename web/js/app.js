@@ -163,14 +163,27 @@ function applyRoleGating(role) {
 // ══════════════════════════════════════════════════════════
 function listenWallet(uid) {
   const walletRef = ref(rtdb, `wallets/${uid}`);
-  onValue(walletRef, snap => {
+  onValue(walletRef, async snap => {
     const raw = snap.val();
-    const val = Number(typeof raw === "object" && raw !== null ? raw.balance ?? raw.value ?? 0 : raw) || 0;
-    document.getElementById("sidebarWallet").textContent = val.toLocaleString();
-    document.getElementById("statWallet").textContent    = val.toLocaleString();
+
+    // ── Auto-repair: if RTDB has a corrupt object (from old increment bug),
+    //    read the correct value from Firestore and fix RTDB silently.
+    if (typeof raw === "object" && raw !== null) {
+      try {
+        const userSnap = await getDoc(doc(db, "users", uid));
+        const correctVal = Number(userSnap.data()?.wallet ?? 0);
+        await set(walletRef, correctVal);  // fix RTDB — this will re-trigger onValue with plain number
+        return;
+      } catch (e) {
+        console.warn("Wallet repair failed:", e);
+      }
+    }
+
+    const val = Number(raw) || 0;
+    document.getElementById("sidebarWallet").textContent    = val.toLocaleString();
+    document.getElementById("statWallet").textContent       = val.toLocaleString();
     document.getElementById("profileWalletBig").textContent = val.toLocaleString();
-    document.getElementById("costBalance").textContent   = `${val.toLocaleString()} credits`;
-    // Save to currentData for local checks
+    document.getElementById("costBalance").textContent      = `${val.toLocaleString()} credits`;
     if (currentData) currentData.wallet = val;
   });
 }
@@ -720,12 +733,21 @@ async function loadWalletCards() {
 
   // Listen to realtime wallet for each user
   users.forEach(u => {
-    onValue(ref(rtdb, `wallets/${u.id}`), snap => {
-      const el = document.getElementById(`wc-bal-${u.id}`);
-      if (!el) return;
+    const wRef = ref(rtdb, `wallets/${u.id}`);
+    onValue(wRef, async snap => {
+      const el  = document.getElementById(`wc-bal-${u.id}`);
       const raw = snap.val();
-      const val = Number(typeof raw === "object" && raw !== null ? raw.balance ?? raw.value ?? 0 : raw) || 0;
-      el.innerHTML = `${val.toLocaleString()} <small>credits</small>`;
+      // Auto-repair corrupt object wallet
+      if (typeof raw === "object" && raw !== null) {
+        try {
+          const uSnap = await getDoc(doc(db, "users", u.id));
+          const correctVal = Number(uSnap.data()?.wallet ?? 0);
+          await set(wRef, correctVal);
+        } catch(e) {}
+        return;
+      }
+      const val = Number(raw) || 0;
+      if (el) el.innerHTML = `${val.toLocaleString()} <small>credits</small>`;
     });
   });
 }
