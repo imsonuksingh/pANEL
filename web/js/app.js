@@ -112,8 +112,9 @@ function initDashboard() {
     updateBulkBar();
   });
 
-  // Navigate to default page
-  navigate("overview");
+  // Navigate to last active page (or overview)
+  const startPage = (location.hash.replace("#", "") || "overview");
+  navigate(startPage);
   loadOverviewStats();
   listenKeys();
 }
@@ -122,10 +123,17 @@ function initDashboard() {
 //  NAV
 // ══════════════════════════════════════════════════════════
 window.navigate = function(page) {
+  // Save active page in URL hash so refresh restores it
+  location.hash = page;
+
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
 
   const pageEl = document.getElementById("page-" + page);
+  // Fallback to overview if page doesn't exist or is hidden (role-gated)
+  if (!pageEl || pageEl.style.display === "none") {
+    if (page !== "overview") { navigate("overview"); return; }
+  }
   if (pageEl) pageEl.classList.add("active");
 
   const navEl = document.querySelector(`.nav-item[data-page="${page}"]`);
