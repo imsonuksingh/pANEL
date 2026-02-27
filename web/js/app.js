@@ -673,12 +673,14 @@ window.openTopup = function(uid, name) {
     const amount = parseInt(document.getElementById("topupAmount").value) || 0;
     if (amount <= 0) return;
 
-    // Realtime DB: increment
-    await update(ref(rtdb, `wallets/${uid}`), { balance: increment(amount) });
-    // Firestore sync
-    const usnap = await getDoc(doc(db, "users", uid));
-    const curBal = usnap.data()?.wallet || 0;
-    await updateDoc(doc(db, "users", uid), { wallet: curBal + amount });
+    // Read current balance from Firestore (source of truth)
+    const usnap  = await getDoc(doc(db, "users", uid));
+    const curBal = Number(usnap.data()?.wallet) || 0;
+    const newBal = curBal + amount;
+
+    // Update both stores as plain number
+    await set(ref(rtdb, `wallets/${uid}`), newBal);
+    await updateDoc(doc(db, "users", uid), { wallet: newBal });
 
     toast("success", `+${amount.toLocaleString()} credits added to ${name}.`);
     closeModal("editUserModal");
@@ -753,14 +755,18 @@ async function loadWalletCards() {
 }
 
 window.walletTopup = async function(uid, name) {
-  const inp = document.getElementById(`wci-${uid}`);
+  const inp    = document.getElementById(`wci-${uid}`);
   const amount = parseInt(inp.value) || 0;
   if (amount <= 0) { toast("warn", "Enter a valid amount."); return; }
 
-  await update(ref(rtdb, `wallets/${uid}`), { balance: increment(amount) });
-  const usnap = await getDoc(doc(db, "users", uid));
-  const curBal = usnap.data()?.wallet || 0;
-  await updateDoc(doc(db, "users", uid), { wallet: curBal + amount });
+  // Read current balance from Firestore (source of truth)
+  const usnap  = await getDoc(doc(db, "users", uid));
+  const curBal = Number(usnap.data()?.wallet) || 0;
+  const newBal = curBal + amount;
+
+  // Update both stores as plain number
+  await set(ref(rtdb, `wallets/${uid}`), newBal);
+  await updateDoc(doc(db, "users", uid), { wallet: newBal });
 
   inp.value = "";
   toast("success", `+${amount.toLocaleString()} added to ${name}.`);
