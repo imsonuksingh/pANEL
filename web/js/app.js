@@ -209,15 +209,17 @@ function listenKeys() {
   if (currentData.role === "owner") {
     keysQ = query(collection(db, "license_keys"), orderBy("createdAt", "desc"), limit(200));
   } else {
+    // No orderBy — avoids composite index requirement; sort client-side below
     keysQ = query(
       collection(db, "license_keys"),
-      where("createdBy", "==", currentUser.uid),
-      orderBy("createdAt", "desc")
+      where("createdBy", "==", currentUser.uid)
     );
   }
 
   onSnapshot(keysQ, snap => {
-    allKeys = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allKeys = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
     renderKeys();
     renderRecentKeys();
     // Update stat
@@ -396,13 +398,12 @@ window.generateKeys = async function() {
 
     await batch.commit();
 
-    // Deduct from wallet (Realtime DB atomic decrement)
-    await update(ref(rtdb, `wallets/${currentUser.uid}`), {
-      balance: increment(-cost)
-    });
-    // Fallback: also update in Firestore for consistency
-    await updateDoc(doc(db, "users", currentUser.uid), { wallet: (bal - cost) });
-    if (currentData) currentData.wallet = bal - cost;
+    // Deduct from wallet — store as plain number (not nested object)
+    const newBal = bal - cost;
+    await set(ref(rtdb, `wallets/${currentUser.uid}`), newBal);
+    // Also update Firestore for consistency
+    await updateDoc(doc(db, "users", currentUser.uid), { wallet: newBal });
+    if (currentData) currentData.wallet = newBal;
 
     closeModal("genKeyModal");
 
