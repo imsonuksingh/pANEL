@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "wallets": {
+      "$uid": {
+        // Each user can read and write their own wallet; owner/admin can write all
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}

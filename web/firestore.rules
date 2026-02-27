@@ -1,0 +1,75 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ─────────────────────────────────
+    function isAuth()  { return request.auth != null; }
+    function uid()     { return request.auth.uid; }
+
+    // Safe: only call when you know the doc exists
+    function myDoc()   { return get(/databases/$(database)/documents/users/$(uid())); }
+    function myDocExists() { return exists(/databases/$(database)/documents/users/$(uid())); }
+    function myData()  { return myDoc().data; }
+    function myRole()  { return myData().role; }
+    function roleRank(role) {
+      return role == "owner" ? 4 : role == "admin" ? 3 : role == "master" ? 2 : 1;
+    }
+    function canManage(targetRole) {
+      return roleRank(myRole()) > roleRank(targetRole);
+    }
+    function isActive() { return myDocExists() && myData().active != false; }
+
+    // ── Users collection ─────────────────────────────────
+    match /users/{userId} {
+
+      // Read own doc always allowed (needed right after setup)
+      // Others need active account + higher rank
+      allow read: if isAuth() && (
+        uid() == userId ||
+        (isActive() && roleRank(myRole()) > 1)
+      );
+
+      // SELF-CREATE: user creating their OWN document (setup.html owner setup)
+      // createdBy must be themselves, role must be owner
+      // -OR- a higher-rank active user creating a subordinate
+      allow create: if isAuth() && (
+        (
+          uid() == userId &&
+          request.resource.data.createdBy == uid() &&
+          request.resource.data.role == "owner" &&
+          !myDocExists()   // only if no existing doc (prevents re-setup)
+        )
+        ||
+        (isActive() && canManage(request.resource.data.role))
+      );
+
+      allow update: if isAuth() && (
+        uid() == userId ||
+        (isActive() && canManage(resource.data.role))
+      );
+
+      allow delete: if isAuth() && isActive() && myRole() == "owner";
+    }
+
+    // ── License Keys collection ──────────────────────────
+    match /license_keys/{keyId} {
+      // Public read — key verification API ke liye
+      allow read: if true;
+
+      allow create: if isAuth() && isActive() &&
+        request.resource.data.createdBy == uid();
+
+      allow update: if isAuth() && isActive() && (
+        resource.data.createdBy == uid() ||
+        myRole() == "owner" ||
+        myRole() == "admin"
+      );
+
+      allow delete: if isAuth() && isActive() && (
+        resource.data.createdBy == uid() ||
+        myRole() == "owner"
+      );
+    }
+  }
+}

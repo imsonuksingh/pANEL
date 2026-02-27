@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>pANEL — Owner Setup (First Time)</title>
+<link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="auth-body">
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="auth-wrapper" style="max-width:480px">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon"><i class="fa-solid fa-crown"></i></div>
+      <span class="logo-text">Owner Setup</span>
+    </div>
+    <p class="auth-subtitle" style="margin-bottom:6px">
+      First-time setup — Create the <strong style="color:#fbbf24">Owner</strong> account
+    </p>
+    <p style="text-align:center;font-size:11.5px;color:var(--text-3);margin-bottom:24px">
+      ⚠️  Run this page ONCE only, then delete <code>setup.html</code><br>
+      <span style="color:#fbbf24">Password can be any length — letters, numbers, or symbols.</span>
+    </p>
+
+    <!-- Progress step -->
+    <div style="display:flex;gap:0;margin-bottom:28px;border-radius:10px;overflow:hidden;border:1px solid var(--border2)">
+      <div id="step1ind" style="flex:1;text-align:center;padding:8px;font-size:11px;font-weight:700;background:rgba(124,58,237,0.2);color:#a78bfa">1. Create Account</div>
+      <div id="step2ind" style="flex:1;text-align:center;padding:8px;font-size:11px;font-weight:700;color:var(--text-3)">2. Set Wallet</div>
+      <div id="step3ind" style="flex:1;text-align:center;padding:8px;font-size:11px;font-weight:700;color:var(--text-3)">3. Done!</div>
+    </div>
+
+    <!-- Step 1: Account -->
+    <div id="stepForm1">
+      <form id="setupForm" autocomplete="off">
+        <div class="form-group">
+          <label><i class="fa-solid fa-user"></i> Full Name</label>
+          <input type="text" id="ownerName" placeholder="Your full name" required/>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-at"></i> Username</label>
+          <input type="text" id="ownerUsername" placeholder="e.g. owner, admin123" autocomplete="off" spellcheck="false" required/>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-lock"></i> Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="ownerPw" placeholder="Any length — letters, digits, symbols" required/>
+            <button type="button" class="pw-toggle" onclick="togglePw('ownerPw',this)"><i class="fa-regular fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-coins"></i> Starting Wallet Credits</label>
+          <input type="number" id="ownerWallet" placeholder="e.g. 10000" value="10000" min="0"/>
+        </div>
+        <div class="auth-status" id="setupStatus"></div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-crown"></i> Create Owner Account
+        </button>
+      </form>
+    </div>
+
+    <!-- Step 3: Done -->
+    <div id="stepDone" style="display:none;text-align:center">
+      <div style="font-size:56px;margin:16px 0">🎉</div>
+      <h3 style="margin-bottom:8px">Owner account created!</h3>
+      <p style="color:var(--text-2);font-size:13px;margin-bottom:24px">Delete <code>setup.html</code> now for security.</p>
+      <a href="index.html" class="btn-primary" style="display:block;text-decoration:none;text-align:center">
+        <i class="fa-solid fa-right-to-bracket"></i> Go to Login
+      </a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db, rtdb }           from "./js/firebase-config.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword }
+                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, setDoc, getDoc, serverTimestamp }
+                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { ref, set }                from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { toVirtualEmail, toPaddedPw } from "./js/utils.js";
+
+document.getElementById("setupForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name     = document.getElementById("ownerName").value.trim();
+  const username = document.getElementById("ownerUsername").value.trim();
+  const pw       = document.getElementById("ownerPw").value;
+  const wallet   = parseInt(document.getElementById("ownerWallet").value) || 10000;
+  const status   = document.getElementById("setupStatus");
+
+  if (!username) {
+    status.className="auth-status error"; status.textContent="❌  Username is required."; return;
+  }
+
+  status.className   = "auth-status info";
+  status.textContent = "⏳  Creating owner account…";
+
+  const email    = toVirtualEmail(username);
+  const paddedPw = toPaddedPw(pw);
+
+  let uid = null;
+
+  try {
+    // Try creating new Auth account
+    const cred = await createUserWithEmailAndPassword(auth, email, paddedPw);
+    uid = cred.user.uid;
+  } catch (err) {
+    if (err.code === "auth/email-already-in-use") {
+      // Auth account already exists (previous partial attempt)
+      // Sign in to get the uid, then complete Firestore setup
+      status.textContent = "⏳  Auth account exists — completing setup…";
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, paddedPw);
+        uid = cred.user.uid;
+      } catch (signInErr) {
+        status.className   = "auth-status error";
+        status.textContent = `❌  Could not sign in: ${signInErr.message}`;
+        return;
+      }
+    } else {
+      status.className   = "auth-status error";
+      status.textContent = `❌  ${err.message}`;
+      return;
+    }
+  }
+
+  try {
+    // Check if Firestore doc already complete
+    const existing = await getDoc(doc(db, "users", uid));
+    if (existing.exists() && existing.data().role === "owner") {
+      status.className   = "auth-status error";
+      status.textContent = "⚠️  Owner account already fully set up. Go to login.";
+      return;
+    }
+
+    // Write / complete Firestore doc
+    await setDoc(doc(db, "users", uid), {
+      name, username, email,
+      role:      "owner",
+      wallet,
+      active:    true,
+      createdBy: uid,
+      createdAt: serverTimestamp(),
+    });
+
+    // Wallet in Realtime DB
+    await set(ref(rtdb, `wallets/${uid}`), wallet);
+
+    document.getElementById("stepForm1").style.display = "none";
+    document.getElementById("stepDone").style.display  = "block";
+    document.getElementById("step3ind").style.background = "rgba(34,197,94,0.2)";
+    document.getElementById("step3ind").style.color     = "#4ade80";
+
+  } catch (err) {
+    status.className   = "auth-status error";
+    status.textContent = `❌  ${err.message}`;
+  }
+});
+</script>
+
+<script>
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type='text'; btn.innerHTML='<i class="fa-regular fa-eye-slash"></i>'; }
+  else { inp.type='password'; btn.innerHTML='<i class="fa-regular fa-eye"></i>'; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>pANEL — Dashboard</title>
+<link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="dash-body">
+
+<!-- ═══════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+        <rect x="2" y="2" width="10" height="36" rx="3" fill="white"/>
+        <rect x="15" y="2" width="23" height="9" rx="3" fill="white" opacity="0.82"/>
+        <rect x="15" y="14" width="10" height="24" rx="3" fill="white" opacity="0.65"/>
+        <rect x="28" y="14" width="10" height="11" rx="2.5" fill="white" opacity="0.65"/>
+        <rect x="28" y="28" width="10" height="10" rx="2.5" fill="white" opacity="0.65"/>
+      </svg>
+    </div>
+    <span class="brand-name"><span class="lt-p">p</span>ANEL</span>
+    <button class="sidebar-close" id="sidebarClose"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+
+  <!-- User info -->
+  <div class="sidebar-user">
+    <div class="user-avatar" id="sidebarAvatar">U</div>
+    <div class="user-info">
+      <div class="user-name" id="sidebarName">Loading…</div>
+      <div class="user-role" id="sidebarRole"><span class="role-badge">—</span></div>
+    </div>
+  </div>
+
+  <!-- Wallet balance -->
+  <div class="sidebar-wallet">
+    <i class="fa-solid fa-wallet"></i>
+    <span>Wallet:</span>
+    <strong id="sidebarWallet">0</strong>
+    <span>credits</span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-page="overview">
+      <i class="fa-solid fa-gauge-high"></i><span>Overview</span>
+    </a>
+    <a href="#" class="nav-item" data-page="keys">
+      <i class="fa-solid fa-key"></i><span>License Keys</span>
+    </a>
+    <!-- Only shown to Owner/Admin/Master -->
+    <a href="#" class="nav-item role-gate" data-roles="owner,admin,master" data-page="users">
+      <i class="fa-solid fa-users"></i><span>User Management</span>
+    </a>
+    <!-- Only Owner/Admin can top-up wallets of all -->
+    <a href="#" class="nav-item role-gate" data-roles="owner,admin" data-page="wallets">
+      <i class="fa-solid fa-coins"></i><span>Wallet Manager</span>
+    </a>
+    <a href="#" class="nav-item" data-page="profile">
+      <i class="fa-solid fa-circle-user"></i><span>Profile</span>
+    </a>
+    <a href="#" class="nav-item" data-page="api">
+      <i class="fa-solid fa-plug"></i><span>API / Verify</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <button class="btn-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+</aside>
+
+<!-- Overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════ -->
+<div class="main-wrap">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+    <div class="topbar-title" id="topbarTitle">Overview</div>
+    <div class="topbar-right">
+      <div class="notif-badge"><i class="fa-regular fa-bell"></i></div>
+      <div class="topbar-user">
+        <span id="topUserName">…</span>
+        <div class="topbar-avatar" id="topbarAvatar">U</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ PAGES ══════════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ─── PAGE: OVERVIEW ─── -->
+    <section class="page active" id="page-overview">
+      <!-- Welcome banner -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2 id="welcomeMsg">Welcome back! 👋</h2>
+          <p>Here's your panel summary for today.</p>
+        </div>
+        <div class="welcome-date" id="welcomeDate"></div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card purple">
+          <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+          <div class="stat-info">
+            <div class="stat-val" id="statWallet">0</div>
+            <div class="stat-label">Wallet Credits</div>
+          </div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-icon"><i class="fa-solid fa-key"></i></div>
+          <div class="stat-info">
+            <div class="stat-val" id="statKeys">0</div>
+            <div class="stat-label">Keys Generated</div>
+          </div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-info">
+            <div class="stat-val" id="statActive">0</div>
+            <div class="stat-label">Active Keys</div>
+          </div>
+        </div>
+        <!-- Owner/Admin/Master only -->
+        <div class="stat-card orange role-gate" data-roles="owner,admin,master">
+          <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-info">
+            <div class="stat-val" id="statUsers">0</div>
+            <div class="stat-label">Sub Users</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent keys -->
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Keys</h3>
+          <button class="btn-sm" onclick="navigate('keys')">View All</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="recentKeysTable">
+            <thead><tr>
+              <th>Key</th><th>Type</th><th>Credits</th><th>Status</th><th>Created</th>
+            </tr></thead>
+            <tbody id="recentKeysTbody">
+              <tr><td colspan="5" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PAGE: LICENSE KEYS ─── -->
+    <section class="page" id="page-keys">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-key"></i> License Keys</h2>
+        <button class="btn-primary-sm" id="openGenModal">
+          <i class="fa-solid fa-plus"></i> Generate Key
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <select id="keyFilterType" onchange="filterKeys()">
+            <option value="">All Types</option>
+            <option value="weekly">Weekly (700cr)</option>
+            <option value="monthly">Monthly (1600cr)</option>
+          </select>
+          <select id="keyFilterStatus" onchange="filterKeys()">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="used">Used</option>
+            <option value="revoked">Revoked</option>
+          </select>
+          <input type="text" id="keySearch" placeholder="🔍  Search key…" oninput="filterKeys()"/>
+        </div>
+        <div class="filter-count" id="keysCount">0 keys</div>
+      </div>
+
+      <div class="section-card no-pad">
+        <div class="table-wrap">
+          <table class="data-table" id="keysTable">
+            <thead><tr>
+              <th><input type="checkbox" id="selectAllKeys"/></th>
+              <th>License Key</th>
+              <th>Type</th>
+              <th>Credits</th>
+              <th>Status</th>
+              <th>Created By</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="keysTbody">
+              <tr><td colspan="8" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bulk actions -->
+      <div class="bulk-bar" id="bulkBar" style="display:none">
+        <span id="bulkCount">0 selected</span>
+        <button class="btn-danger-sm" onclick="bulkRevoke()"><i class="fa-solid fa-ban"></i> Revoke Selected</button>
+      </div>
+    </section>
+
+    <!-- ─── PAGE: USER MANAGEMENT ─── -->
+    <section class="page" id="page-users">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-users"></i> User Management</h2>
+        <button class="btn-primary-sm" id="openAddUserModal">
+          <i class="fa-solid fa-user-plus"></i> Add User
+        </button>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="sub-tabs" id="userSubTabs">
+        <button class="sub-tab active" data-role-tab="all">All</button>
+        <button class="sub-tab role-gate" data-roles="owner" data-role-tab="admin">Admins</button>
+        <button class="sub-tab role-gate" data-roles="owner,admin" data-role-tab="master">Masters</button>
+        <button class="sub-tab role-gate" data-roles="owner,admin,master" data-role-tab="seller">Sellers</button>
+      </div>
+
+      <div class="section-card no-pad">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr>
+              <th>Name</th><th>Username</th><th>Role</th>
+              <th>Wallet</th><th>Status</th><th>Created</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="usersTbody">
+              <tr><td colspan="7" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PAGE: WALLET MANAGER ─── -->
+    <section class="page" id="page-wallets">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-coins"></i> Wallet Manager</h2>
+      </div>
+
+      <div class="wallet-cards" id="walletCards">
+        <!-- dynamically filled -->
+      </div>
+    </section>
+
+    <!-- ─── PAGE: PROFILE ─── -->
+    <section class="page" id="page-profile">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-circle-user"></i> My Profile</h2>
+      </div>
+
+      <div class="profile-grid">
+        <!-- Profile card -->
+        <div class="section-card profile-card">
+          <div class="profile-avatar-lg" id="profileAvatarLg">U</div>
+          <div class="profile-name" id="profileName">—</div>
+          <div class="profile-role" id="profileRoleBadge"></div>
+          <div class="profile-email" id="profileEmail" style="font-size:12px;color:var(--text-3);margin-top:4px"><i class="fa-solid fa-user" style="margin-right:5px"></i><span id="profileUsername">—</span></div>
+          <div class="profile-wallet-big">
+            <i class="fa-solid fa-coins"></i>
+            <span id="profileWalletBig">0</span> credits
+          </div>
+        </div>
+
+        <!-- Change password -->
+        <div class="section-card">
+          <h3><i class="fa-solid fa-lock"></i> Change Password</h3>
+          <form id="changePwForm" style="margin-top:18px">
+            <div class="form-group">
+              <label>Current Password</label>
+              <input type="password" id="curPw" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" id="newPw" placeholder="Any length — letters, digits, symbols"/>
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input type="password" id="confirmPw" placeholder="Repeat new password"/>
+            </div>
+            <div class="auth-status" id="pwChangeStatus"></div>
+            <button type="submit" class="btn-primary" style="width:100%;margin-top:8px">
+              Update Password
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PAGE: API / VERIFY ─── -->
+    <section class="page" id="page-api">
+      <div class="page-header">
+        <h2><i class="fa-solid fa-plug"></i> API &amp; Key Verification</h2>
+      </div>
+
+      <!-- Live Endpoint Banner -->
+      <div class="welcome-banner" style="margin-bottom:22px">
+        <div class="welcome-text">
+          <h2 style="font-size:15px;margin-bottom:6px">🔗 Your Live Verification Endpoint</h2>
+          <p style="font-family:monospace;font-size:13px;word-break:break-all;color:var(--accent-purple)" id="apiEndpointUrl">Loading…</p>
+        </div>
+        <button class="btn-sm" onclick="copyApiEndpoint()" style="flex-shrink:0">
+          <i class="fa-solid fa-copy"></i> Copy
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="sub-tabs" style="margin-bottom:18px">
+        <button class="sub-tab active" onclick="showApiTab('usage',this)">Usage</button>
+        <button class="sub-tab" onclick="showApiTab('response',this)">Response</button>
+        <button class="sub-tab" onclick="showApiTab('tester',this)">Live Tester</button>
+      </div>
+
+      <!-- Tab: Usage -->
+      <div id="apiTab-usage">
+        <div class="section-card" style="margin-bottom:16px">
+          <h3 style="margin-bottom:14px"><i class="fa-solid fa-code"></i> HTTP Request</h3>
+          <div style="background:var(--bg-input);border-radius:10px;padding:16px 18px;font-family:monospace;font-size:12.5px;line-height:1.8;border:1px solid var(--border2)">
+            <span style="color:#86efac">GET</span> <span id="apiUsageUrl" style="color:var(--accent-purple)">https://your-domain.vercel.app</span><span style="color:#fde68a">/api/verify</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;?<span style="color:#7dd3fc">key</span>=<span style="color:#fca5a5">XXXX-XXXX-XXXX</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&amp;<span style="color:#7dd3fc">hwid</span>=<span style="color:#fca5a5">YOUR_HWID</span> <span style="color:var(--text-3);font-style:italic">(optional — binds on first use)</span>
+          </div>
+        </div>
+
+        <div class="section-card" style="margin-bottom:16px">
+          <h3 style="margin-bottom:14px"><i class="fa-solid fa-laptop-code"></i> C# / .NET Example</h3>
+          <div style="background:var(--bg-input);border-radius:10px;padding:16px 18px;font-family:monospace;font-size:12px;line-height:1.8;border:1px solid var(--border2);overflow-x:auto;white-space:pre" id="apiCsharpExample">// Add using System.Net.Http; using System.Text.Json;
+var http = new HttpClient();
+string key  = "XXXX-XXXX-XXXX";
+string hwid = GetHardwareId(); // your HWID function
+string url  = $"<span id='apiCsharpUrl'>https://your-domain.vercel.app</span>/api/verify?key={key}&amp;hwid={hwid}";
+
+var resp = await http.GetStringAsync(url);
+var json = JsonDocument.Parse(resp).RootElement;
+
+if (json.GetProperty("valid").GetBoolean()) {
+    Console.WriteLine("✅ " + json.GetProperty("message").GetString());
+} else {
+    Console.WriteLine("❌ " + json.GetProperty("error").GetString());
+}</div>
+        </div>
+
+        <div class="section-card">
+          <h3 style="margin-bottom:14px"><i class="fa-brands fa-python"></i> Python Example</h3>
+          <div style="background:var(--bg-input);border-radius:10px;padding:16px 18px;font-family:monospace;font-size:12px;line-height:1.8;border:1px solid var(--border2);overflow-x:auto;white-space:pre" id="apiPythonExample">import requests
+
+key  = "XXXX-XXXX-XXXX"
+hwid = get_hwid()  # your HWID function
+url  = "<span id='apiPythonUrl'>https://your-domain.vercel.app</span>/api/verify"
+
+res  = requests.get(url, params={"key": key, "hwid": hwid})
+data = res.json()
+
+if data["valid"]:
+    print("✅", data["message"])
+else:
+    print("❌", data["error"])</div>
+        </div>
+      </div>
+
+      <!-- Tab: Response -->
+      <div id="apiTab-response" style="display:none">
+        <div class="section-card" style="margin-bottom:16px">
+          <h3 style="margin-bottom:14px;color:#4ade80"><i class="fa-solid fa-circle-check"></i> Success Response</h3>
+          <div style="background:var(--bg-input);border-radius:10px;padding:16px 18px;font-family:monospace;font-size:12.5px;line-height:1.8;border:1px solid #16a34a40">
+<pre style="margin:0;color:var(--text-1)">{{
+  "valid":     <span style="color:#86efac">true</span>,
+  "key":       <span style="color:#fde68a">"XXXX-XXXX-XXXX"</span>,
+  "type":      <span style="color:#fde68a">"monthly"</span>,
+  "status":    <span style="color:#fde68a">"active"</span>,
+  "hwid":      <span style="color:#fde68a">"ABC123"</span>,
+  "expiresAt": <span style="color:#fde68a">"2026-03-28T00:00:00.000Z"</span>,
+  "daysLeft":  <span style="color:#7dd3fc">28</span>,
+  "message":   <span style="color:#fde68a">"Key is valid · 28 day(s) remaining"</span>
+}}</pre>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <h3 style="margin-bottom:14px;color:#f87171"><i class="fa-solid fa-circle-xmark"></i> Error Responses</h3>
+          <div style="background:var(--bg-input);border-radius:10px;padding:16px 18px;font-family:monospace;font-size:12.5px;line-height:1.8;border:1px solid #dc262640">
+<pre style="margin:0;color:var(--text-1)"><span style="color:var(--text-3);font-style:italic">// Key not found</span>
+{{ "valid": <span style="color:#f87171">false</span>, "error": "Key not found" }}
+
+<span style="color:var(--text-3);font-style:italic">// Expired</span>
+{{ "valid": <span style="color:#f87171">false</span>, "error": "Key has expired", "expiredAt": "..." }}
+
+<span style="color:var(--text-3);font-style:italic">// Revoked</span>
+{{ "valid": <span style="color:#f87171">false</span>, "error": "Key has been revoked" }}
+
+<span style="color:var(--text-3);font-style:italic">// HWID mismatch</span>
+{{ "valid": <span style="color:#f87171">false</span>, "error": "HWID mismatch — key is locked to a different device" }}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Live Tester -->
+      <div id="apiTab-tester" style="display:none">
+        <div class="section-card">
+          <h3 style="margin-bottom:16px"><i class="fa-solid fa-flask"></i> Test a Key Live</h3>
+          <div class="form-group">
+            <label>License Key</label>
+            <input type="text" id="testKeyInput" placeholder="XXXX-XXXX-XXXX" style="text-transform:uppercase"/>
+          </div>
+          <div class="form-group">
+            <label>HWID <small style="color:var(--text-3)">(optional)</small></label>
+            <input type="text" id="testHwidInput" placeholder="Leave blank to skip HWID check"/>
+          </div>
+          <button class="btn-primary" onclick="testApiKey()" style="width:100%">
+            <i class="fa-solid fa-paper-plane"></i> Send Request
+          </button>
+          <div id="testResult" style="display:none;margin-top:18px"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════════════ -->
+
+<!-- Generate Key Modal -->
+<div class="modal-overlay" id="genKeyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-key"></i> Generate License Key</h3>
+      <button class="modal-close" onclick="closeModal('genKeyModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>License Type</label>
+        <div class="type-selector">
+          <label class="type-opt" id="optWeekly">
+            <input type="radio" name="keyType" value="weekly" checked onchange="updateCost()"/>
+            <div class="type-card">
+              <i class="fa-solid fa-calendar-week"></i>
+              <strong>Weekly</strong>
+              <span class="type-cost">700 credits</span>
+              <span class="type-desc">7 day access</span>
+            </div>
+          </label>
+          <label class="type-opt" id="optMonthly">
+            <input type="radio" name="keyType" value="monthly" onchange="updateCost()"/>
+            <div class="type-card">
+              <i class="fa-solid fa-calendar-days"></i>
+              <strong>Monthly</strong>
+              <span class="type-cost">1600 credits</span>
+              <span class="type-desc">30 day access</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Quantity <small>(max 50)</small></label>
+        <div class="qty-wrap">
+          <button type="button" onclick="changeQty(-1)">-</button>
+          <input type="number" id="genQty" value="1" min="1" max="50" oninput="updateCost()"/>
+          <button type="button" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <div class="cost-summary">
+        <div class="cost-row">
+          <span>Cost per key:</span><strong id="costPerKey">700</strong>
+        </div>
+        <div class="cost-row">
+          <span>Quantity:</span><strong id="costQty">1</strong>
+        </div>
+        <div class="cost-row total">
+          <span>Total deduction:</span><strong id="costTotal">700 credits</strong>
+        </div>
+        <div class="cost-row balance">
+          <span>Your balance:</span><strong id="costBalance">0 credits</strong>
+        </div>
+      </div>
+      <div class="auth-status" id="genStatus"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('genKeyModal')">Cancel</button>
+      <button class="btn-primary" id="genKeyBtn" onclick="generateKeys()">
+        <i class="fa-solid fa-bolt"></i> Generate
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Generated Keys Result Modal -->
+<div class="modal-overlay" id="genResultModal">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-circle-check"></i> Keys Generated!</h3>
+      <button class="modal-close" onclick="closeModal('genResultModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="gen-result-info" id="genResultInfo"></div>
+      <div class="gen-keys-list" id="genKeysList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="copyAllKeys()"><i class="fa-solid fa-copy"></i> Copy All</button>
+      <button class="btn-primary" onclick="closeModal('genResultModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-user-plus"></i> Add New User</h3>
+      <button class="modal-close" onclick="closeModal('addUserModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="newUserName" placeholder="John Doe"/>
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="newUserUsername" placeholder="e.g. john_doe, player123" autocomplete="off" spellcheck="false"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="newUserPw" placeholder="Any length — letters, digits, symbols"/>
+      </div>
+      <div class="form-group">
+        <label>Assign Role</label>
+        <select id="newUserRole">
+          <!-- Options filled dynamically based on current user's role -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Initial Wallet Credits</label>
+        <input type="number" id="newUserWallet" placeholder="0" min="0"/>
+      </div>
+      <div class="auth-status" id="addUserStatus"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="btn-primary" onclick="addUser()">
+        <i class="fa-solid fa-plus"></i> Create User
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User / Top-up Wallet Modal -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="editUserTitle"><i class="fa-solid fa-user-pen"></i> Edit User</h3>
+      <button class="modal-close" onclick="closeModal('editUserModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="editUserBody"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('editUserModal')">Cancel</button>
+      <button class="btn-primary" id="editUserSaveBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Firebase & App scripts -->
+<script type="module" src="js/firebase-config.js"></script>
+<script type="module" src="js/app.js"></script>
+
+<!-- ── API Page scripts ────────────────────────────────────── -->
+<script>
+(function initApiPage() {
+  // Run after DOM is ready
+  document.addEventListener("DOMContentLoaded", function () {
+    setApiUrls();
+  });
+
+  // Also re-run when the API page is navigated to (app.js may call this)
+  window.onApiPageShow = setApiUrls;
+
+  function setApiUrls() {
+    const origin = window.location.origin; // e.g. https://my-panel.vercel.app
+    const endpoint = origin + "/api/verify?key=XXXX-XXXX-XXXX&hwid=YOUR_HWID";
+
+    const endpointEl = document.getElementById("apiEndpointUrl");
+    if (endpointEl) endpointEl.textContent = origin + "/api/verify";
+
+    const usageUrlEl = document.getElementById("apiUsageUrl");
+    if (usageUrlEl) usageUrlEl.textContent = origin;
+
+    const csharpEl = document.getElementById("apiCsharpUrl");
+    if (csharpEl) csharpEl.textContent = origin;
+
+    const pythonEl = document.getElementById("apiPythonUrl");
+    if (pythonEl) pythonEl.textContent = origin;
+
+    window.__apiOrigin = origin;
+  }
+
+  window.copyApiEndpoint = function () {
+    const origin = window.__apiOrigin || window.location.origin;
+    navigator.clipboard.writeText(origin + "/api/verify").then(function () {
+      showToastApi("✅  Endpoint URL copied!");
+    });
+  };
+
+  window.showApiTab = function (tab, btn) {
+    ["usage", "response", "tester"].forEach(function (t) {
+      const el = document.getElementById("apiTab-" + t);
+      if (el) el.style.display = t === tab ? "" : "none";
+    });
+    document.querySelectorAll("#page-api .sub-tab").forEach(function (b) {
+      b.classList.remove("active");
+    });
+    if (btn) btn.classList.add("active");
+  };
+
+  window.testApiKey = async function () {
+    const key  = (document.getElementById("testKeyInput")?.value || "").trim().toUpperCase();
+    const hwid = (document.getElementById("testHwidInput")?.value || "").trim();
+    const resultEl = document.getElementById("testResult");
+
+    if (!key) {
+      resultEl.style.display = "";
+      resultEl.innerHTML = '<div class="auth-status error">⚠️  Please enter a license key.</div>';
+      return;
+    }
+
+    resultEl.style.display = "";
+    resultEl.innerHTML = '<div class="auth-status"><i class="fa-solid fa-spinner fa-spin"></i> Sending request…</div>';
+
+    const origin = window.__apiOrigin || window.location.origin;
+    let url = origin + "/api/verify?key=" + encodeURIComponent(key);
+    if (hwid) url += "&hwid=" + encodeURIComponent(hwid);
+
+    try {
+      const res  = await fetch(url);
+      const data = await res.json();
+
+      const isValid = data.valid === true;
+      const color   = isValid ? "#4ade80" : "#f87171";
+      const icon    = isValid ? "fa-circle-check" : "fa-circle-xmark";
+
+      resultEl.innerHTML =
+        '<div style="border:1px solid ' + color + '40;border-radius:10px;padding:14px 16px;background:var(--bg-input)">' +
+        '  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+        '    <i class="fa-solid ' + icon + '" style="color:' + color + '"></i>' +
+        '    <strong style="color:' + color + '">' + (isValid ? "VALID" : "INVALID") + '</strong>' +
+        '    <span style="font-size:11px;color:var(--text-3);margin-left:auto">' + url + '</span>' +
+        '  </div>' +
+        '  <pre style="margin:0;font-family:monospace;font-size:12px;white-space:pre-wrap;color:var(--text-1)">' +
+            JSON.stringify(data, null, 2) +
+        '  </pre>' +
+        '</div>';
+    } catch (err) {
+      resultEl.innerHTML = '<div class="auth-status error">❌  Request failed: ' + err.message + '</div>';
+    }
+  };
+
+  function showToastApi(msg) {
+    // Use existing toast if available
+    if (typeof showToast === "function") { showToast(msg, "success"); return; }
+    const tc = document.getElementById("toastContainer");
+    if (!tc) return;
+    const t = document.createElement("div");
+    t.className = "toast success";
+    t.textContent = msg;
+    tc.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+})();
+</script>
+</body>
+</html>

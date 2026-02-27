@@ -1,0 +1,253 @@
+<Window x:Class="pANEL.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="pANEL — License Activation"
+        Height="580" Width="460"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <!-- Pulse glow (opacity on FrameworkElement — safe) -->
+        <Storyboard x:Key="PulseAnim" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation Storyboard.TargetName="GlowOrb"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.25" To="0.65" Duration="0:0:2"/>
+        </Storyboard>
+    </Window.Resources>
+
+    <!-- Outer shadow wrapper -->
+    <Border CornerRadius="18" Margin="20">
+        <Border.Effect>
+            <DropShadowEffect Color="#000000" BlurRadius="48"
+                              ShadowDepth="0" Opacity="0.85"/>
+        </Border.Effect>
+
+        <!-- Main Card -->
+        <Border x:Name="MainCard"
+                Background="{StaticResource BrushBgCard}"
+                CornerRadius="18"
+                ClipToBounds="True"
+                Opacity="0">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="MainCardTrans" Y="30"/>
+            </Border.RenderTransform>
+
+            <Grid>
+                <!-- ===== BACKGROUND BLOBS ===== -->
+                <!-- Top-left purple blob -->
+                <Ellipse Width="300" Height="300"
+                         HorizontalAlignment="Left" VerticalAlignment="Top"
+                         Margin="-100,-100,0,0">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#4C1D95" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <!-- Bottom-right blue blob -->
+                <Ellipse x:Name="GlowOrb"
+                         Width="280" Height="280"
+                         HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                         Margin="0,0,-80,-80" Opacity="0.3">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#1D4ED8" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <!-- Shimmer sweep -->
+                <Rectangle Height="100" Margin="0,120,0,0"
+                           VerticalAlignment="Top"
+                           IsHitTestVisible="False"
+                           Opacity="0.04">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="Transparent"  Offset="0"/>
+                            <GradientStop Color="White"        Offset="0.5"/>
+                            <GradientStop Color="Transparent"  Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                    <Rectangle.RenderTransform>
+                        <TranslateTransform x:Name="ShimmerTrans" X="-460"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+
+                <!-- ===== TITLE BAR (drag) ===== -->
+                <Border Height="44"
+                        VerticalAlignment="Top"
+                        Background="Transparent"
+                        MouseLeftButtonDown="TitleBar_MouseDown">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,12,0">
+                        <!-- Close button -->
+                        <Button Width="28" Height="28"
+                                Content="✕"
+                                Click="CloseBtn_Click"
+                                ToolTip="Close"
+                                Style="{x:Null}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bg"
+                                            CornerRadius="6"
+                                            Background="Transparent">
+                                        <TextBlock Text="✕"
+                                                   Foreground="#64748B"
+                                                   FontSize="13"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bg" Property="Background" Value="#EF4444"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== CONTENT ===== -->
+                <StackPanel Margin="50,50,50,40"
+                            VerticalAlignment="Center">
+
+                    <!-- Logo / Icon area -->
+                    <Grid HorizontalAlignment="Center" Margin="0,16,0,0">
+                        <Ellipse Width="76" Height="76">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#7C3AED" Offset="0"/>
+                                    <GradientStop Color="#3B82F6" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#7C3AED" BlurRadius="22"
+                                                  ShadowDepth="0" Opacity="0.7"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <TextBlock Text="🔑"
+                                   FontSize="32"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Title -->
+                    <TextBlock Text="pANEL"
+                               FontFamily="Segoe UI"
+                               FontSize="30"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource BrushTextPrimary}"
+                               HorizontalAlignment="Center"
+                               Margin="0,14,0,4"/>
+
+                    <TextBlock Text="Enter your License Key to continue"
+                               FontFamily="Segoe UI"
+                               FontSize="12.5"
+                               Foreground="{StaticResource BrushTextSecondary}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,32"/>
+
+                    <!-- Key format hint -->
+                    <Border Background="#1E1E3F"
+                            CornerRadius="8"
+                            Padding="12,8"
+                            Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="FORMAT: "
+                                       FontFamily="Segoe UI"
+                                       FontSize="11"
+                                       Foreground="{StaticResource BrushTextMuted}"/>
+                            <TextBlock Text="XXXX-XXXX-XXXX-XXXX"
+                                       FontFamily="Consolas"
+                                       FontSize="11"
+                                       Foreground="#A855F7"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Key Input -->
+                    <TextBox x:Name="TxtKey"
+                             Style="{StaticResource KeyInput}"
+                             ToolTip="Paste or type your license key"
+                             TextChanged="TxtKey_TextChanged"
+                             KeyDown="TxtKey_KeyDown"/>
+
+                    <!-- Char counter -->
+                    <TextBlock x:Name="TxtCounter"
+                               Text="0 / 16 chars"
+                               FontFamily="Segoe UI"
+                               FontSize="11"
+                               Foreground="{StaticResource BrushTextMuted}"
+                               HorizontalAlignment="Right"
+                               Margin="0,4,4,0"/>
+
+                    <!-- Status message -->
+                    <Border x:Name="StatusBorder"
+                            CornerRadius="9"
+                            Padding="14,10"
+                            Margin="0,16,0,0"
+                            Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="StatusIcon"
+                                       FontSize="14"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,10,0"/>
+                            <TextBlock x:Name="StatusText"
+                                       FontFamily="Segoe UI"
+                                       FontSize="13"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Activate Button -->
+                    <Button x:Name="BtnActivate"
+                            Content="ACTIVATE LICENSE"
+                            Style="{StaticResource PrimaryButton}"
+                            Height="50"
+                            Margin="0,22,0,0"
+                            FontSize="14"
+                            FontFamily="Segoe UI"
+                            FontWeight="Bold"
+                            Click="BtnActivate_Click"
+                            IsEnabled="False"/>
+
+                    <!-- Loading ring (hidden) -->
+                    <ProgressBar x:Name="LoadingBar"
+                                 IsIndeterminate="True"
+                                 Height="3"
+                                 Margin="0,10,0,0"
+                                 Foreground="{StaticResource BrushAccentGlow}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Visibility="Collapsed"/>
+
+                    <!-- Footer -->
+                    <TextBlock FontFamily="Segoe UI"
+                               FontSize="11"
+                               Foreground="{StaticResource BrushTextMuted}"
+                               HorizontalAlignment="Center"
+                               Margin="0,30,0,0">
+                        <Run Text="No key? Contact "/>
+                        <Run Text="support@panel.dev"
+                             Foreground="#7C3AED"
+                             FontWeight="SemiBold"/>
+                    </TextBlock>
+
+                </StackPanel>
+
+            </Grid>
+        </Border>
+    </Border>
+</Window>

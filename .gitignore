@@ -1,0 +1,18 @@
+# ── Secret files — KABHI COMMIT MAT KARO ──────────────────
+service-account*.json
+firebase-key*.json
+firebase-adminsdk*.json
+.env
+.env.local
+.env.production
+
+# ── Build artifacts ─────────────────────────────────────
+node_modules/
+bin/
+obj/
+*.user
+.vs/
+
+# ── OS files ────────────────────────────────────────────
+.DS_Store
+Thumbs.db

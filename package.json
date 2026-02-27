@@ -1,0 +1,14 @@
+{
+  "name": "panel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "pANEL — License key management & verification system",
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "firebase-admin": "^12.1.0"
+  }
+}
