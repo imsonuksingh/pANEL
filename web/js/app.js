@@ -682,9 +682,14 @@ window.openTopup = function(uid, name) {
     await set(ref(rtdb, `wallets/${uid}`), newBal);
     await updateDoc(doc(db, "users", uid), { wallet: newBal });
 
+    // ── Instant UI update — no refresh needed ──────────────
+    // Update in-memory allUsers so re-render shows new balance
+    const u = allUsers.find(x => x.id === uid);
+    if (u) u.wallet = newBal;
+    renderUsers();
+
     toast("success", `+${amount.toLocaleString()} credits added to ${name}.`);
     closeModal("editUserModal");
-    loadUsers();
   };
 
   openModal("editUserModal");
