@@ -54,15 +54,20 @@ module.exports = async function handler(req, res) {
   const cleanKey = key.trim().toUpperCase();
 
   try {
-    const keyRef  = db.collection("license_keys").doc(cleanKey);
-    const keySnap = await keyRef.get();
+    // Keys are stored with auto-generated IDs; key string is a field — query by it
+    const querySnap = await db.collection("license_keys")
+      .where("key", "==", cleanKey)
+      .limit(1)
+      .get();
 
     // ── Key not found ──────────────────────────────────────
-    if (!keySnap.exists) {
+    if (querySnap.empty) {
       return res.json({ valid: false, error: "Key not found" });
     }
 
-    const data = keySnap.data();
+    const keyDoc  = querySnap.docs[0];
+    const keyRef  = keyDoc.ref;
+    const data    = keyDoc.data();
 
     // ── Revoked ────────────────────────────────────────────
     if (data.status === "revoked") {
