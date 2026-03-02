@@ -454,8 +454,7 @@ window.copyAllKeys = function() {
 // Key helpers
 function generateKeyString() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const seg   = () => Array.from({length:4}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-  return `${seg()}-${seg()}-${seg()}-${seg()}`;
+  return Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
 }
 
 function getExpiry(type) {
